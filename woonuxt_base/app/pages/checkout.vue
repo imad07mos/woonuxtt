@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { loadStripe } from '@stripe/stripe-js';
-import type { Stripe, StripeElements, CreateSourceData, StripeCardElement } from '@stripe/stripe-js';
+// --- REMOVE STRIPE IMPORTS AND TYPES ---
+// import { loadStripe } from '@stripe/stripe-js';
+// import type { Stripe, StripeElements, CreateSourceData, StripeCardElement } from '@stripe/stripe-js';
 
 const { t } = useI18n();
 const { query } = useRoute();
@@ -8,49 +9,42 @@ const { cart, isUpdatingCart, paymentGateways } = useCart();
 const { customer, viewer } = useAuth();
 const { orderInput, isProcessingOrder, proccessCheckout } = useCheckout();
 const runtimeConfig = useRuntimeConfig();
-const stripeKey = runtimeConfig.public?.STRIPE_PUBLISHABLE_KEY || null;
+// --- REMOVE STRIPE KEY ---
+// const stripeKey = runtimeConfig.public?.STRIPE_PUBLISHABLE_KEY || null;
 
 const buttonText = ref<string>(isProcessingOrder.value ? t('messages.general.processing') : t('messages.shop.checkoutButton'));
 const isCheckoutDisabled = computed<boolean>(() => isProcessingOrder.value || isUpdatingCart.value || !orderInput.value.paymentMethod);
 
 const isInvalidEmail = ref<boolean>(false);
-const stripe: Stripe | null = stripeKey ? await loadStripe(stripeKey) : null;
-const elements = ref();
-const isPaid = ref<boolean>(false);
+// --- REMOVE STRIPE INSTANCE AND RELATED REFS ---
+// const stripe: Stripe | null = stripeKey ? await loadStripe(stripeKey) : null;
+// const elements = ref();
+// const isPaid = ref<boolean>(false); // No longer needed
 
 onBeforeMount(async () => {
   if (query.cancel_order) window.close();
 });
 
-const payNow = async () => {
+const submitOrder = async () => { // Better name: submitOrder
   buttonText.value = t('messages.general.processing');
 
-  const { stripePaymentIntent } = await GqlGetStripePaymentIntent();
-  const clientSecret = stripePaymentIntent?.clientSecret || '';
-
   try {
-    if (orderInput.value.paymentMethod.id === 'stripe' && stripe && elements.value) {
-      const cardElement = elements.value.getElement('card') as StripeCardElement;
-      const { setupIntent } = await stripe.confirmCardSetup(clientSecret, { payment_method: { card: cardElement } });
-      const { source } = await stripe.createSource(cardElement as CreateSourceData);
+    // --- NO PAYMENT PROCESSING CODE HERE ---
 
-      if (source) orderInput.value.metaData.push({ key: '_stripe_source_id', value: source.id });
-      if (setupIntent) orderInput.value.metaData.push({ key: '_stripe_intent_id', value: setupIntent.id });
+    // --- CALL proccessCheckout WITH true (always) ---
+    proccessCheckout(true); // Order proceeds without payment
 
-      isPaid.value = setupIntent?.status === 'succeeded' || false;
-      orderInput.value.transactionId = source?.created?.toString() || new Date().getTime().toString();
-    }
   } catch (error) {
-    console.error(error);
-    buttonText.value = t('messages.shop.placeOrder');
+    console.error("Error processing order:", error);
+    buttonText.value = t('messages.shop.placeOrder'); // Or a more specific error message
+    // Consider displaying a user-friendly error message on the page.
   }
-
-  proccessCheckout(isPaid.value);
 };
 
-const handleStripeElement = (stripeElements: StripeElements): void => {
-  elements.value = stripeElements;
-};
+// --- REMOVE STRIPE ELEMENT HANDLER ---
+// const handleStripeElement = (stripeElements: StripeElements): void => {
+//   elements.value = stripeElements;
+// };
 
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
@@ -81,7 +75,7 @@ useSeoMeta({
         </NuxtLink>
       </div>
 
-      <form v-else class="container flex flex-wrap items-start gap-8 my-16 justify-evenly lg:gap-20" @submit.prevent="payNow">
+      <form v-else class="container flex flex-wrap items-start gap-8 my-16 justify-evenly lg:gap-20" @submit.prevent="submitOrder">
         <div class="grid w-full max-w-2xl gap-8 checkout-form md:flex-1">
           <!-- Customer details -->
           <div v-if="!viewer && customer.billing">
@@ -146,7 +140,8 @@ useSeoMeta({
           <div v-if="paymentGateways?.nodes.length" class="mt-2 col-span-full">
             <h2 class="mb-4 text-xl font-semibold">{{ $t('messages.billing.paymentOptions') }}</h2>
             <PaymentOptions v-model="orderInput.paymentMethod" class="mb-4" :paymentGateways />
-            <StripeElement v-if="stripe" v-show="orderInput.paymentMethod.id == 'stripe'" :stripe @updateElement="handleStripeElement" />
+            <!-- REMOVE THIS: -->
+            <!-- <StripeElement v-if="stripe" v-show="orderInput.paymentMethod.id == 'stripe'" :stripe @updateElement="handleStripeElement" /> -->
           </div>
 
           <!-- Order note -->
@@ -181,8 +176,7 @@ useSeoMeta({
 .checkout-form input[type='tel'],
 .checkout-form input[type='password'],
 .checkout-form textarea,
-.checkout-form select,
-.checkout-form .StripeElement {
+.checkout-form select {
   @apply bg-white border rounded-md outline-none border-gray-300 shadow-sm w-full py-2 px-4;
 }
 
@@ -194,8 +188,10 @@ useSeoMeta({
 .checkout-form label {
   @apply my-1.5 text-xs text-gray-600 uppercase;
 }
-
+/* REMOVE STYLING FOR STRIPE ELEMENT */
+/*
 .checkout-form .StripeElement {
   padding: 1rem 0.75rem;
 }
+*/
 </style>
