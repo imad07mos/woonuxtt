@@ -70,18 +70,16 @@ export default defineNuxtConfig({
     },
   },
 
-  // Multilingual support
+ // Multilingual support
   i18n: {
     locales: [
-      { code: 'en_US', file: 'en-US.json', name: 'English 🇺🇸' },
-      { code: 'de_DE', file: 'de-DE.json', name: 'Deutsch 🇩🇪' },
-      { code: 'es_ES', file: 'es-ES.json', name: 'Español 🇪🇸' },
+      { code: 'ar-SA', file: 'ar-SA.json', name: 'AR' , dir: 'rtl'},
+    
       { code: 'fr_FR', file: 'fr-FR.json', name: 'Français 🇫🇷' },
-      { code: 'it_IT', file: 'it-IT.json', name: 'Italiano 🇮🇹' },
-      { code: 'pt_BR', file: 'pt-BR.json', name: 'Português 🇧🇷' },
+     
     ],
     langDir: 'locales',
-    defaultLocale: 'en_US',
+    defaultLocale: 'ar-SA',
     strategy: 'no_prefix',
     restructureDir: false,
   },
